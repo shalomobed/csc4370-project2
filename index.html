@@ -12,7 +12,11 @@
 <body>
     <div class="container">
         <div class="puzzle-container" id="puzzle-container"></div>
-        <button id="shuffle-btn"> Shuffle Tiles</button>
+        <div class="button-container">
+            <button id="shuffle-btn"> Shuffle</button>
+            <button id="reset-btn">Reset</button>
+            <button id="magic-hint">Magic Hint</button>
+        </div>
         <div id="message">Congratulations! You solved the puzzle!</div>
     </div>
     <script>
@@ -20,6 +24,12 @@
         let tilesArray = Array.from({length: 15 }, (_,i) => i+1).concat([0]);
         let emptyIndex = 15;
 
+        function resetTiles(){
+            tilesArray = Array.from({length: 15 }, (_,i) => i+1).concat([0]);
+            emptyIndex = 15;
+            renderTiles();
+        }
+        document.getElementById('reset-btn').addEventListener('click', resetTiles);
 
         function handleTileClick(index){
             if (isAdjacent(index, emptyIndex)) {
@@ -70,6 +80,7 @@
             return true;
 
         }
+        
         function shuffleTiles(){
             let currentEmpty = emptyIndex;
             for( let i = 0; i < 1000; i++){
@@ -92,7 +103,9 @@
             document.getElementById('message').style.display = 'none';
         }
         document.getElementById('shuffle-btn').addEventListener('click', shuffleTiles);
-        shuffleTiles();
+       
+        renderTiles();
+        // shuffleTiles();
     </script>
 </body>
 
