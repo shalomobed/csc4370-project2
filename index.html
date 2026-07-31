@@ -11,8 +11,13 @@
 
 <body>
     <div class="container">
+        <div class="mode-container">
+            <button id="tide-mode" class="active">Tide Mode</button>
+            <button id="breeze-mode">Breeze Mode</button>
+            <button id="sun-mode">Sun Mode</button>
+        </div>
         <div class="puzzle-container" id="puzzle-container"></div>
-        <div class="button-container">
+        <div class="options-container">
             <button id="shuffle-btn"> Shuffle</button>
             <button id="reset-btn">Reset</button>
             <button id="magic-hint">Magic Hint</button>
@@ -23,6 +28,7 @@
         let TileSize = 97;
         let tilesArray = Array.from({length: 15 }, (_,i) => i+1).concat([0]);
         let emptyIndex = 15;
+        let currentMode = 'tide_mode';
 
         function resetTiles(){
             tilesArray = Array.from({length: 15 }, (_,i) => i+1).concat([0]);
@@ -45,6 +51,15 @@
             }
         }
         
+        function setTileImage(value, tile) {
+            if (value === 0) return;
+            let row_in_image = Math.floor((value - 1) / 4) + 1;
+            let col_in_image = ((value - 1) % 4) + 1;
+
+            tile.style.backgroundImage = `url(images/${currentMode}/row-${row_in_image}-column-${col_in_image}.jpg)`;
+            tile.style.backgroundSize = "cover";
+        }        
+
         function isAdjacent(a, b) {
             let rowA = Math.floor(a / 4);
             let colA = a % 4;
@@ -53,11 +68,12 @@
 
             return (Math.abs(rowA - rowB) === 1 && colA === colB) || (Math.abs(colA - colB) === 1 && rowA === rowB);
         }
+
         function renderTiles() {
             let container = document.getElementById('puzzle-container');
             container.innerHTML = '';
             tilesArray.forEach((value, index) => {
-                let tile = document.createElement('div');
+                let tile = document.createElement('div'); 
                 tile.className = value === 0 ? 'tile empty' : 'tile';
                 tile.textContent = value || '';
                 tile.addEventListener('click', () => handleTileClick(index));
@@ -68,6 +84,7 @@
                 tile.style.left = `${col * TileSize}px` ;
 
                 container.appendChild(tile);
+                setTileImage(value, tile);
 
             })
         }
@@ -103,9 +120,17 @@
             document.getElementById('message').style.display = 'none';
         }
         document.getElementById('shuffle-btn').addEventListener('click', shuffleTiles);
-       
+        //setTideMode(value, tile);
         renderTiles();
-        // shuffleTiles();
+
+        document.getElementById('tide-mode').addEventListener('click', () => { currentMode = 'tide_mode'; renderTiles(); });       
+        document.getElementById('breeze-mode').addEventListener('click', () => { currentMode = 'breeze_mode'; renderTiles(); });
+        document.getElementById('sun-mode').addEventListener('click', () => { currentMode = 'sun_mode'; renderTiles(); }); 
+
+        // if (currentMode = 'breeze_mode') {
+        //     document.getElementById('breeze-mode').style.color = "#ffffff";
+
+        // }
     </script>
 </body>
 
