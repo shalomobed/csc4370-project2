@@ -12,7 +12,7 @@
 <body>
     <div class="container">
         <div class="mode-container">
-            <button id="tide-mode" class="active">Tide Mode</button>
+            <button id="tide-mode">Tide Mode</button>
             <button id="breeze-mode">Breeze Mode</button>
             <button id="sun-mode">Sun Mode</button>
         </div>
@@ -58,7 +58,21 @@
 
             tile.style.backgroundImage = `url(images/${currentMode}/row-${row_in_image}-column-${col_in_image}.jpg)`;
             tile.style.backgroundSize = "cover";
-        }        
+        }   
+        
+        function updateModeButtonStyles(){
+            let modeButtons = [document.getElementById('tide-mode'), document.getElementById('breeze-mode'), document.getElementById('sun-mode')];  
+            modeButtons.forEach((button) => {
+                button.classList.remove('active-tide', 'active-breeze', 'active-sun');
+            });
+                if (currentMode === 'tide_mode') {
+                    document.getElementById('tide-mode').classList.add('active-tide');
+                } else if (currentMode === 'breeze_mode'){
+                    document.getElementById('breeze-mode').classList.add('active-breeze');
+                } else if (currentMode === 'sun_mode'){
+                    document.getElementById('sun-mode').classList.add('active-sun');
+                }
+        }
 
         function isAdjacent(a, b) {
             let rowA = Math.floor(a / 4);
@@ -123,12 +137,18 @@
         //setTideMode(value, tile);
         renderTiles();
 
-        document.getElementById('tide-mode').addEventListener('click', () => { currentMode = 'tide_mode'; renderTiles(); });       
-        document.getElementById('breeze-mode').addEventListener('click', () => { currentMode = 'breeze_mode'; renderTiles(); });
-        document.getElementById('sun-mode').addEventListener('click', () => { currentMode = 'sun_mode'; renderTiles(); }); 
+        document.getElementById('tide-mode').addEventListener('click', () => { currentMode = 'tide_mode'; renderTiles(); updateModeButtonStyles()});       
+        document.getElementById('breeze-mode').addEventListener('click', () => { currentMode = 'breeze_mode'; renderTiles(); updateModeButtonStyles()});
+        document.getElementById('sun-mode').addEventListener('click', () => { currentMode = 'sun_mode'; renderTiles(); updateModeButtonStyles()}); 
 
-        // if (currentMode = 'breeze_mode') {
+        // if (currentMode === 'breeze_mode') {
         //     document.getElementById('breeze-mode').style.color = "#ffffff";
+        //     document.getElementById('breeze-mode').style.backgroundColor = "#14b8a6";
+        // } 
+
+        // if (currentMode === 'sun_mode') {
+        //     document.getElementById('sun-mode').style.color = "#ffffff";
+        //     document.getElementById('sun-mode').style.backgroundColor = "#14b8a6";
 
         // }
     </script>

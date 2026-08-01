@@ -81,11 +81,20 @@ body {
     transition: 0.3s;
 }
 
-.mode-container button.active{
+
+.mode-container button.active-tide {
     background: #14b8a6;
     color: #ffffff;
 }
 
+.mode-container button.active-breeze {
+    background: #14b8a6;
+    color: #ffffff;
+}
+.mode-container button.active-sun {
+    background: #14b8a6;
+    color: #ffffff;
+}
 
 .options-container button {
     position: relative;
