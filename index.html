@@ -11,147 +11,82 @@
 
 <body>
     <div class="container">
+        <div class="settings-container">
+            <label for="puzzle-size">Puzzle Size</label>
+            <select id="puzzle-size">
+                <option value="3">3x3</option>
+                <option value="4" selected>4x4</option>
+                <option value="5">5x5</option>
+                <option value="6">6x6</option>
+                <option value="8">8x8</option>
+                <option value="10">10x10</option>
+            </select>
+
+            <label for="difficulty-mode">Difficulty Mode</label>
+            <select id="difficulty-mode">
+                <option value="easy">Easy</option>
+                <option value="normal">Normal</option>
+                <option value="hard">Hard</option>
+                <option value="adaptive">Adaptive</option>
+            </select>
+        </div>
+
         <div class="mode-container">
             <button id="tide-mode">Tide Mode</button>
             <button id="breeze-mode">Breeze Mode</button>
             <button id="sun-mode">Sun Mode</button>
         </div>
+        <label class="sound-toggle">
+            <input type="checkbox" id="sound-toggle" checked>
+            Sound On
+        </label>
+        <!-- Basic move/time stats. Needed so the leaderboard has data to save. -->
+        <div class="stats-container">
+            <span id="move-counter">Moves: 0</span>
+            <span id="timer-display">Time: 0s</span>
+        </div>
+
+
+        <div class="session-stats-container">
+            <p><span style="font-weight: bold;">Sessions</span><br><span id="sessions-count">0</span></p>
+            <p><span style="font-weight: bold;">Avg Moves</span><br><span id="avg-moves">0</span></p>
+            <p><span style="font-weight: bold;">Avg Time</span><br><span id="avg-time">0s</span></p>
+            <p><span style="font-weight: bold;">Progression</span><br><span id="progression-level">Starter</span></p>
+        </div>
+
         <div class="puzzle-container" id="puzzle-container"></div>
         <div class="options-container">
             <button id="shuffle-btn"> Shuffle</button>
             <button id="reset-btn">Reset</button>
             <button id="magic-hint">Magic Hint</button>
         </div>
-        <!-- <div id="message">Congratulations! You solved the puzzle!</div> -->
+        <div id="message">Congratulations! You solved the puzzle!</div>
+
+
+
+
+        <audio id="move-sound"><source src="audio/click-button.mp3" preload="auto"></audio>
+        <audio id="win-sound"><source src="audio/success-chime.mp3" preload="auto"></audio>
+
+        <div class="leaderboard-container">
+            <h2>Leaderboard</h2>
+            <input type="text" id="player-name" placeholder="Enter name for score records">
+            <table id="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Mode</th>
+                        <th>Moves</th>
+                        <th>Time</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-body"></tbody>
+            </table>
+        </div>
     </div>
-    <script>
-        let TileSize = 97;
-        let tilesArray = Array.from({length: 15 }, (_,i) => i+1).concat([0]);
-        let emptyIndex = 15;
-        let currentMode = 'tide_mode';
 
-        function resetTiles(){
-            tilesArray = Array.from({length: 15 }, (_,i) => i+1).concat([0]);
-            emptyIndex = 15;
-            renderTiles();
-        }
-        document.getElementById('reset-btn').addEventListener('click', resetTiles);
-
-        function handleTileClick(index){
-            if (isAdjacent(index, emptyIndex)) {
-                tilesArray[emptyIndex] = tilesArray[index];
-                tilesArray[index] = 0;
-                emptyIndex = index;
-                renderTiles();
-
-                if (isSolved()){
-                    document.getElementById('message').style.display = 'block';
-
-                }
-            }
-        }
-        
-        function setTileImage(value, tile) {
-            if (value === 0) return;
-            let row_in_image = Math.floor((value - 1) / 4) + 1;
-            let col_in_image = ((value - 1) % 4) + 1;
-
-            tile.style.backgroundImage = `url(images/${currentMode}/row-${row_in_image}-column-${col_in_image}.jpg)`;
-            tile.style.backgroundSize = "cover";
-        }   
-        
-        function updateModeButtonStyles(){
-            let modeButtons = [document.getElementById('tide-mode'), document.getElementById('breeze-mode'), document.getElementById('sun-mode')];  
-            modeButtons.forEach((button) => {
-                button.classList.remove('active-tide', 'active-breeze', 'active-sun');
-            });
-                if (currentMode === 'tide_mode') {
-                    document.getElementById('tide-mode').classList.add('active-tide');
-                } else if (currentMode === 'breeze_mode'){
-                    document.getElementById('breeze-mode').classList.add('active-breeze');
-                } else if (currentMode === 'sun_mode'){
-                    document.getElementById('sun-mode').classList.add('active-sun');
-                }
-        }
-
-        function isAdjacent(a, b) {
-            let rowA = Math.floor(a / 4);
-            let colA = a % 4;
-            let rowB = Math.floor(b / 4);
-            let colB = b % 4;
-
-            return (Math.abs(rowA - rowB) === 1 && colA === colB) || (Math.abs(colA - colB) === 1 && rowA === rowB);
-        }
-
-        function renderTiles() {
-            let container = document.getElementById('puzzle-container');
-            container.innerHTML = '';
-            tilesArray.forEach((value, index) => {
-                let tile = document.createElement('div'); 
-                tile.className = value === 0 ? 'tile empty' : 'tile';
-                tile.textContent = value || '';
-                tile.addEventListener('click', () => handleTileClick(index));
-
-                let row = Math.floor(index / 4);
-                let col = index % 4;
-                tile.style.top = `${row * TileSize}px` ;
-                tile.style.left = `${col * TileSize}px` ;
-
-                container.appendChild(tile);
-                setTileImage(value, tile);
-
-            })
-        }
-        function isSolved(){
-            for (let i = 0; i < 15; i++){
-                if(tilesArray[i] !== i + 1){
-                    return false;
-                }
-            }
-            return true;
-
-        }
-        
-        function shuffleTiles(){
-            let currentEmpty = emptyIndex;
-            for( let i = 0; i < 1000; i++){
-                let possibleMoves = [];
-                let row = Math.floor(currentEmpty / 4);
-                let col = currentEmpty % 4;
-
-                if (row > 0) possibleMoves.push(currentEmpty - 4);
-                if (row < 3) possibleMoves.push(currentEmpty + 4);
-                if (col > 0) possibleMoves.push(currentEmpty - 1);
-                if (col < 3) possibleMoves.push(currentEmpty + 1);
-
-                let move = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-                tilesArray[currentEmpty] = tilesArray[move];
-                tilesArray[move] = 0;
-                currentEmpty = move;
-            }
-            emptyIndex = currentEmpty;
-            renderTiles();
-            document.getElementById('message').style.display = 'none';
-        }
-        document.getElementById('shuffle-btn').addEventListener('click', shuffleTiles);
-        //setTideMode(value, tile);
-        renderTiles();
-
-        document.getElementById('tide-mode').addEventListener('click', () => { currentMode = 'tide_mode'; renderTiles(); updateModeButtonStyles()});       
-        document.getElementById('breeze-mode').addEventListener('click', () => { currentMode = 'breeze_mode'; renderTiles(); updateModeButtonStyles()});
-        document.getElementById('sun-mode').addEventListener('click', () => { currentMode = 'sun_mode'; renderTiles(); updateModeButtonStyles()}); 
-
-        // if (currentMode === 'breeze_mode') {
-        //     document.getElementById('breeze-mode').style.color = "#ffffff";
-        //     document.getElementById('breeze-mode').style.backgroundColor = "#14b8a6";
-        // } 
-
-        // if (currentMode === 'sun_mode') {
-        //     document.getElementById('sun-mode').style.color = "#ffffff";
-        //     document.getElementById('sun-mode').style.backgroundColor = "#14b8a6";
-
-        // }
-    </script>
+    <script src="script.js"></script>
 </body>
 
 </html>

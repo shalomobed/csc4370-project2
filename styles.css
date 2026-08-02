@@ -66,6 +66,20 @@ body {
     background: rgba(0, 0, 0, 0.1);
 }
 
+.puzzle-container .tile.tile-hint {
+    box-shadow: 0 0 0 4px #f59e0b, 0 0 18px 4px rgba(245, 158, 11, 0.8);
+    animation: hint-pulse 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes hint-pulse {
+    from {
+        box-shadow: 0 0 0 4px #f59e0b, 0 0 10px 2px rgba(245, 158, 11, 0.6);
+    }
+    to {
+        box-shadow: 0 0 0 4px #f59e0b, 0 0 22px 6px rgba(245, 158, 11, 0.9);
+    }
+}
+
 .mode-container button {
     display: block;
     padding: 12px 24px;
@@ -125,4 +139,107 @@ body {
     margin-top: 70px;
 }
 
+.stats-container {
+    display: flex;
+    justify-content: space-between;
+    width: 390px;
+    margin-bottom: 10px;
+    font-weight: 700;
+    color: #333333;
+}
 
+.settings-container {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.settings-container label {
+    font-weight: 700;
+    color: #333333;
+}
+
+.settings-container select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 10px 36px 10px 16px;
+    font-family: inherit;
+    font-size: 0.95em;
+    font-weight: 600;
+    color: #333333;
+    background-color: #f2f6f8;
+    border: 2px solid #14b8a6;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: 0.3s;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2314b8a6' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 12px;
+}
+
+.settings-container select:hover {
+    background-color: #ffffff;
+}
+
+.settings-container select:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.3);
+}
+
+.sound-toggle {
+    display: block;
+    margin-bottom: 15px;
+    font-weight: 700;
+    color: #333333;
+}
+
+.session-stats-container {
+    display: flex;
+    justify-content: space-between;
+    width: 390px;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #333333;
+}
+
+.leaderboard-container {
+    margin-top: 70px;
+    width: 390px;
+}
+
+.leaderboard-container h2 {
+    margin-bottom: 12px;
+    color: #333333;
+}
+
+.leaderboard-container input {
+    width: 100%;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    border: 2px solid #14b8a6;
+    border-radius: 50px;
+    font-family: inherit;
+}
+
+#leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+#leaderboard-table th,
+#leaderboard-table td {
+    padding: 8px 6px;
+    text-align: left;
+    font-size: 0.85em;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+#leaderboard-table th {
+    background: #14b8a6;
+    color: #ffffff;
+}
