@@ -161,16 +161,16 @@ function setTileImage(value, tile) {
 }   
 
 function updateModeButtonStyles(){
-    let modeButtons = [document.getElementById('tide-mode'), document.getElementById('breeze-mode'), document.getElementById('sun-mode')];  
+    let modeButtons = [document.getElementById('tide-mode'), document.getElementById('sunset-mode'), document.getElementById('galaxy-mode')];  
     modeButtons.forEach((button) => {
-        button.classList.remove('active-tide', 'active-breeze', 'active-sun');
+        button.classList.remove('active-tide', 'active-sunset', 'active-galaxy');
     });
         if (currentMode === 'tide_mode') {
             document.getElementById('tide-mode').classList.add('active-tide');
-        } else if (currentMode === 'breeze_mode'){
-            document.getElementById('breeze-mode').classList.add('active-breeze');
-        } else if (currentMode === 'sun_mode'){
-            document.getElementById('sun-mode').classList.add('active-sun');
+        } else if (currentMode === 'sunset_mode'){
+            document.getElementById('sunset-mode').classList.add('active-sunset');
+        } else if (currentMode === 'galaxy_mode'){
+            document.getElementById('galaxy-mode').classList.add('active-galaxy');
         }
 }
 
@@ -326,8 +326,8 @@ shuffleTiles();
 updateModeButtonStyles();
 
 document.getElementById('tide-mode').addEventListener('click', () => { currentMode = 'tide_mode'; renderTiles(); updateModeButtonStyles()});       
-document.getElementById('breeze-mode').addEventListener('click', () => { currentMode = 'breeze_mode'; renderTiles(); updateModeButtonStyles()});
-document.getElementById('sun-mode').addEventListener('click', () => { currentMode = 'sun_mode'; renderTiles(); updateModeButtonStyles()}); 
+document.getElementById('sunset-mode').addEventListener('click', () => { currentMode = 'sunset_mode'; renderTiles(); updateModeButtonStyles()});
+document.getElementById('galaxy-mode').addEventListener('click', () => { currentMode = 'galaxy_mode'; renderTiles(); updateModeButtonStyles()}); 
 
 
 

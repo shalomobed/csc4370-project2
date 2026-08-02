@@ -41,10 +41,10 @@ if ($player === '' || strlen($player) > 50) {
 }
 
 // variant: must be one of the modes script.js actually sends. saveScore()
-// stores formatted names like "Tide Mode" / "Breeze Mode" / "Sun Mode"
+// stores formatted names like "Tide Mode" / "Sunset Mode" / "Galaxy Mode"
 // (see formatModeName()), not the raw 'tide_mode' keys, so validate
 // against THOSE strings.
-$validVariants = ["Tide Mode", "Breeze Mode", "Sun Mode"];
+$validVariants = ["Tide Mode", "Sunset Mode", "Galaxy Mode"];
 $variant = isset($input['variant']) ? $input['variant'] : '';
 if (!in_array($variant, $validVariants, true)) {
     http_response_code(400);

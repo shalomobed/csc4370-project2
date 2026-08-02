@@ -51,7 +51,8 @@ body {
     justify-content: center;
     align-items: center;
     font-size: 2em;
-    color: #333333;
+    color: #ffffff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
     cursor: pointer;
     border-radius: 10px;
     transition: 0.5s;
@@ -101,12 +102,15 @@ body {
     color: #ffffff;
 }
 
-.mode-container button.active-breeze {
-    background: #14b8a6;
+/* Warm orange-to-pink gradient for Sunset mode */
+.mode-container button.active-sunset {
+    background: linear-gradient(90deg, #f97316, #ec4899);
     color: #ffffff;
 }
-.mode-container button.active-sun {
-    background: #14b8a6;
+
+/* Deep indigo-to-violet gradient for Galaxy mode */
+.mode-container button.active-galaxy {
+    background: linear-gradient(90deg, #4c1d95, #1e1b4b);
     color: #ffffff;
 }
 
@@ -133,6 +137,7 @@ body {
 }
 
 #message {
+    display: none; /* JS flips this to 'block' only once isSolved() is true */
     text-align: center;
     font-size: 1.5rem;
     color: #333333;
