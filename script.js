@@ -102,18 +102,20 @@ function stopTimer() {
 
 
 function resetTiles(){
-
     tilesArray = Array.from({length: gridSize * gridSize - 1 }, (_,i) => i+1).concat([0]);
     emptyIndex = tilesArray.length - 1;
+
+    moveCount = 0;
+    document.getElementById('move-counter').textContent = 'Moves: 0';
+
     stopTimer();
+    secondsElapsed = 0;
+    document.getElementById('timer-display').textContent = 'Time: 0s';
+
     document.getElementById('message').style.display = 'none';
 
-    // Rubric requires an automated shuffle into a guaranteed-solvable state
-    // on both load AND reset -- showing the solved board on Reset would
-    // just hand the player the answer, so hand off to shuffleTiles()
-    // instead of stopping at the solved layout. shuffleTiles() takes care
-    // of zeroing the move counter and restarting the timer.
-    shuffleTiles();
+    renderTiles();
+
 }
 document.getElementById('reset-btn').addEventListener('click', resetTiles);
 
