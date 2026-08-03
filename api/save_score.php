@@ -1,38 +1,30 @@
 <?php
-// save_score.php
-// Purpose: receive the JSON POST body from index.html's saveScore()
-// fetch() call and insert one row into the `scores` table.
+// Receives the JSON POST from saveScore() in script.js and inserts a row
+// into the scores table.
 
 require 'db.php';
 
 header('Content-Type: application/json');
 
-// --- STARTER: read the raw request body ---
 $raw = file_get_contents('php://input');
 
-// STEP 1: Decode the JSON body.
 $input = json_decode($raw, true);
 if (!is_array($input)) {
-    // Covers both malformed JSON (json_decode returns null) and valid JSON
-    // that isn't an object/array (e.g. a bare number or string), which
-    // would otherwise throw a fatal error on the $input['player'] access
-    // below instead of a clean 400 response.
+    // Covers bad JSON and valid JSON that isn't an object (e.g. a bare
+    // number), which would otherwise blow up on $input['player'] below.
     http_response_code(400);
     echo json_encode(["success" => false, "error" => "Invalid JSON body"]);
     exit;
 }
 
-// STEP 2: Check the connection before doing anything else.
 if ($pdo === null) {
     http_response_code(503);
     echo json_encode(["success" => false, "error" => "Database unavailable"]);
     exit;
 }
 
-// STEP 3: Validate every field BEFORE touching the database.
+// Validate everything before touching the database.
 
-// player: trim it, reject if empty after trimming, cap length to match
-// the VARCHAR(50) column.
 $player = isset($input['player']) ? trim((string) $input['player']) : '';
 if ($player === '' || strlen($player) > 50) {
     http_response_code(400);
@@ -40,10 +32,8 @@ if ($player === '' || strlen($player) > 50) {
     exit;
 }
 
-// variant: must be one of the modes script.js actually sends. saveScore()
-// stores formatted names like "Tide Mode" / "Sunset Mode" / "Galaxy Mode"
-// (see formatModeName()), not the raw 'tide_mode' keys, so validate
-// against THOSE strings.
+// saveScore() sends the formatted mode name ("Tide Mode"), not the raw
+// 'tide_mode' key, so that's what gets checked here.
 $validVariants = ["Tide Mode", "Sunset Mode", "Galaxy Mode"];
 $variant = isset($input['variant']) ? $input['variant'] : '';
 if (!in_array($variant, $validVariants, true)) {
@@ -52,7 +42,6 @@ if (!in_array($variant, $validVariants, true)) {
     exit;
 }
 
-// moves: must be a positive integer.
 $moves = $input['moves'] ?? null;
 if (!is_int($moves) || $moves <= 0) {
     http_response_code(400);
@@ -60,8 +49,7 @@ if (!is_int($moves) || $moves <= 0) {
     exit;
 }
 
-// time: must be a non-negative integer. A sub-1-second solve is
-// legitimately 0, so we don't require > 0 here.
+// time can legitimately be 0 on a very fast solve, so no > 0 check here.
 $time = $input['time'] ?? null;
 if (!is_int($time) || $time < 0) {
     http_response_code(400);
@@ -69,24 +57,18 @@ if (!is_int($time) || $time < 0) {
     exit;
 }
 
-// We don't accept a client-supplied date/timestamp for this row -- a
-// player's browser clock isn't trustworthy for a leaderboard. MySQL's
-// `created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP` (already in the schema
-// in db.php's comment) stamps it server-side instead.
+// created_at is stamped by MySQL (see schema) -- not taking a client date.
 
-// STEP 4: Insert using a PREPARED STATEMENT -- never string-concatenate
-// user input into SQL.
 try {
     $stmt = $pdo->prepare(
         "INSERT INTO scores (player, variant, moves, `time`) VALUES (?, ?, ?, ?)"
     );
     $stmt->execute([$player, $variant, $moves, $time]);
 
-    // STEP 5: Consistent JSON response.
     echo json_encode(["success" => true]);
 } catch (PDOException $e) {
     error_log("save_score.php insert failed: " . $e->getMessage());
     http_response_code(500);
     echo json_encode(["success" => false, "error" => "Could not save score"]);
 }
-// No closing PHP tag on purpose -- see db.php.
+// No closing tag -- avoids stray output before header() runs.
