@@ -332,18 +332,21 @@ function formatModeName(mode) {
     return mode.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
-function saveScore() {
-    let player = document.getElementById('player-name').value.trim();
-    if (player === "") {
-
-        let entered = window.prompt("Nice solve! Enter your name for the leaderboard:", "");
-        player = (entered || "").trim() || "Player";
-    }
-
+function finalizeScoreSave(player) {
     let mode = formatModeName(currentMode);
 
-    // Try the server first so scores are shared across devices, not just
-    // stuck in this browser's storage.
+    // Save locally first and render right away -- this guarantees the score
+    // you just earned shows up immediately, regardless of what the server
+    // does or how long it takes.
+    saveScoreLocally(player, mode, moveCount, secondsElapsed);
+    let localScores = JSON.parse(localStorage.getItem("puzzleLeaderboard")) || [];
+    renderLeaderboardRows(localScores);
+
+    // Try the server too, so the leaderboard is shared across devices, not
+    // just stuck in this browser's storage. Only re-check the server list
+    // AFTER this request finishes -- calling loadLeaderboard() immediately
+    // here would race the INSERT and could load stale data that doesn't
+    // include the score we just saved, overwriting the local render above.
     fetch('api/save_score.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -362,16 +365,24 @@ function saveScore() {
         })
         .catch((err) => {
             // No PHP/DB running locally, or db.php couldn't connect -- fine,
-            // the local copy below keeps things working either way.
+            // the local render above already shows the score either way.
             console.warn('Could not reach save_score.php, using localStorage only:', err);
+        })
+        .finally(() => {
+            loadLeaderboard();
         });
+}
 
-    // Always keep a local copy so the leaderboard still works if the
-    // fetch above fails.
-    saveScoreLocally(player, mode, moveCount, secondsElapsed);
+function saveScore() {
+    let nameInput = document.getElementById('player-name');
+    let player = nameInput.value.trim();
 
-    loadLeaderboard();
+    if (player === "") {
+        let entered = window.prompt("Nice solve! Enter your name for the leaderboard:", "");
+        player = (entered || "").trim() || "Player";
+    }
 
+    finalizeScoreSave(player);
 }
 
 function saveScoreLocally(name, mode, moves, time) {
@@ -432,16 +443,25 @@ function renderLeaderboardRows(scores) {
 }
 
 function loadLeaderboard() {
+    let localScores = JSON.parse(localStorage.getItem("puzzleLeaderboard")) || [];
+
     fetch('api/get_scores.php')
         .then((response) => response.json())
         .then((scores) => {
-            renderLeaderboardRows(scores);
+            // A server response of [] can mean "genuinely no scores yet" OR
+            // "db.php couldn't connect, so get_scores.php returned an empty
+            // array instead of an error." If we have local scores but the
+            // server says none, trust the local copy instead of wiping it.
+            if (scores.length === 0 && localScores.length > 0) {
+                renderLeaderboardRows(localScores);
+            } else {
+                renderLeaderboardRows(scores);
+            }
         })
         .catch((err) => {
             // API/DB not reachable -- fall back to local storage
             console.warn('Could not reach get_scores.php, falling back to localStorage:', err);
-            let scores = JSON.parse(localStorage.getItem("puzzleLeaderboard")) || [];
-            renderLeaderboardRows(scores);
+            renderLeaderboardRows(localScores);
         });
 }
 
