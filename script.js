@@ -46,9 +46,8 @@ function onSettingsChanged(){
     }
     
 
-    // resetTiles() rebuilds the board at the new size and auto-shuffles it,
-    // so changing the puzzle size / difficulty never leaves the solved
-    // layout showing on screen.
+    // Changing size/difficulty needs a full rebuild since gridSize and
+    // tileSize both change.
     resetTiles();
     updateMagicHintButton();
 
@@ -287,11 +286,9 @@ function isSolved(){
 }
 
 function shuffleTiles(){
-    boardLocked = true; // matches memory.js locking the board during setup
+    boardLocked = true; // prevent clicks while tiles are being rearranged
     let currentEmpty = emptyIndex;
-    // shuffleMoveCount is difficulty-scaled in onSettingsChanged (160/240/340/280)
-    // -- it was being set but never actually used, so every difficulty was
-    // shuffling the same fixed amount. Fall back to 160 if it's ever unset.
+    // shuffleMoveCount comes from onSettingsChanged, scaled per difficulty
     let shuffleSteps = shuffleMoveCount > 0 ? shuffleMoveCount : 160;
     for( let i = 0; i < shuffleSteps; i++){
         let possibleMoves = [];
@@ -320,9 +317,7 @@ function shuffleTiles(){
 }
 document.getElementById('shuffle-btn').addEventListener('click', shuffleTiles);
 
-// Start every page load on a shuffled, solvable board instead of the
-// solved layout -- rubric requires auto-shuffle "on load and reset" with
-// no manual pre-arranging.
+// Board should never load in the solved state, so shuffle immediately
 document.getElementById('message').style.display = 'none';
 shuffleTiles();
 updateModeButtonStyles();
@@ -347,8 +342,8 @@ function saveScore() {
 
     let mode = formatModeName(currentMode);
 
-    // Try the server first so the leaderboard is shared across
-    // browsers/devices instead of being stuck per-machine.
+    // Try the server first so scores are shared across devices, not just
+    // stuck in this browser's storage.
     fetch('api/save_score.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -366,15 +361,13 @@ function saveScore() {
             }
         })
         .catch((err) => {
-            // Server/DB might not be set up (e.g. no PHP running locally,
-            // or db.php couldn't connect) -- that's fine, the localStorage
-            // copy below keeps the leaderboard working either way.
+            // No PHP/DB running locally, or db.php couldn't connect -- fine,
+            // the local copy below keeps things working either way.
             console.warn('Could not reach save_score.php, using localStorage only:', err);
         });
 
-    // Always keep a local copy too. This is the fallback save_score.php's
-    // comments call out: if the fetch() above fails, the leaderboard
-    // still works off this instead of hanging or breaking.
+    // Always keep a local copy so the leaderboard still works if the
+    // fetch above fails.
     saveScoreLocally(player, mode, moveCount, secondsElapsed);
 
     loadLeaderboard();
@@ -396,7 +389,7 @@ function saveScoreLocally(name, mode, moves, time) {
         return a.time - b.time || a.moves - b.moves;
     });
 
-    scores = scores.slice(0, 5); // keep top 5, same as Homework 4
+    scores = scores.slice(0, 5); // keep top 5 only
 
     localStorage.setItem("puzzleLeaderboard", JSON.stringify(scores));
 }
@@ -439,15 +432,13 @@ function renderLeaderboardRows(scores) {
 }
 
 function loadLeaderboard() {
-    // Try the shared server leaderboard first...
     fetch('api/get_scores.php')
         .then((response) => response.json())
         .then((scores) => {
             renderLeaderboardRows(scores);
         })
         .catch((err) => {
-            // ...and fall back to whatever's saved locally if the API/DB
-            // isn't reachable, same idea as saveScore() above.
+            // API/DB not reachable -- fall back to local storage
             console.warn('Could not reach get_scores.php, falling back to localStorage:', err);
             let scores = JSON.parse(localStorage.getItem("puzzleLeaderboard")) || [];
             renderLeaderboardRows(scores);
