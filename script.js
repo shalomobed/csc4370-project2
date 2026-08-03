@@ -5,7 +5,6 @@ let currentMode = 'tide_mode';
 let gridSize = 4;
 let shuffleMoveCount = 160; // matches the 'easy' default selected in the difficulty dropdown
 let currentDifficulty = 'easy';
-let currentTrack = 'undergrad'; // single-track scope for this submission
 let magicHints = 5;
 
 let moveCount = 0;
@@ -47,18 +46,13 @@ function onSettingsChanged(){
     }
     
 
-    // resetTiles() rebuilds the board at the new size and shuffles it, so
-    // changing puzzle size/difficulty never leaves the solved layout showing.
+    // resetTiles() rebuilds the board at the new size and auto-shuffles it,
+    // so changing the puzzle size / difficulty never leaves the solved
+    // layout showing on screen.
     resetTiles();
     updateMagicHintButton();
-    updateTrackStatus();
 
-}
 
-function updateTrackStatus() {
-    let label = currentTrack.charAt(0).toUpperCase() + currentTrack.slice(1);
-    document.getElementById('track-status').textContent =
-        `Active Track: ${label} | Difficulty: ${currentDifficulty} | Magic Uses: ${magicHints}`;
 }
 
 
@@ -108,13 +102,20 @@ function stopTimer() {
 
 
 function resetTiles(){
-    // Rebuild to solved state first (handles size changes from
-    // onSettingsChanged), then shuffle into a fresh solvable layout.
-    // shuffleTiles() takes care of zeroing moves/time and restarting the timer.
     tilesArray = Array.from({length: gridSize * gridSize - 1 }, (_,i) => i+1).concat([0]);
     emptyIndex = tilesArray.length - 1;
 
-    shuffleTiles();
+    moveCount = 0;
+    document.getElementById('move-counter').textContent = 'Moves: 0';
+
+    stopTimer();
+    secondsElapsed = 0;
+    document.getElementById('timer-display').textContent = 'Time: 0s';
+
+    document.getElementById('message').style.display = 'none';
+
+    renderTiles();
+
 }
 document.getElementById('reset-btn').addEventListener('click', resetTiles);
 
@@ -240,12 +241,10 @@ function useMagicHint() {
 
     magicHints--;
     updateMagicHintButton();
-    updateTrackStatus();
     playSound(document.getElementById('move-sound'));
 }
 document.getElementById('magic-hint').addEventListener('click', useMagicHint);
 updateMagicHintButton();
-updateTrackStatus();
 
 function isAdjacent(a, b) {
     let rowA = Math.floor(a / gridSize);
@@ -288,9 +287,11 @@ function isSolved(){
 }
 
 function shuffleTiles(){
-    boardLocked = true; // prevent clicks while tiles are being rearranged
+    boardLocked = true; // matches memory.js locking the board during setup
     let currentEmpty = emptyIndex;
-    // shuffleMoveCount comes from onSettingsChanged, scaled per difficulty
+    // shuffleMoveCount is difficulty-scaled in onSettingsChanged (160/240/340/280)
+    // -- it was being set but never actually used, so every difficulty was
+    // shuffling the same fixed amount. Fall back to 160 if it's ever unset.
     let shuffleSteps = shuffleMoveCount > 0 ? shuffleMoveCount : 160;
     for( let i = 0; i < shuffleSteps; i++){
         let possibleMoves = [];
@@ -319,7 +320,9 @@ function shuffleTiles(){
 }
 document.getElementById('shuffle-btn').addEventListener('click', shuffleTiles);
 
-// Board should never load in the solved state, so shuffle immediately
+// Start every page load on a shuffled, solvable board instead of the
+// solved layout -- rubric requires auto-shuffle "on load and reset" with
+// no manual pre-arranging.
 document.getElementById('message').style.display = 'none';
 shuffleTiles();
 updateModeButtonStyles();
@@ -344,8 +347,8 @@ function saveScore() {
 
     let mode = formatModeName(currentMode);
 
-    // Try the server first so scores are shared across devices, not just
-    // stuck in this browser's storage.
+    // Try the server first so the leaderboard is shared across
+    // browsers/devices instead of being stuck per-machine.
     fetch('api/save_score.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -363,13 +366,15 @@ function saveScore() {
             }
         })
         .catch((err) => {
-            // No PHP/DB running locally, or db.php couldn't connect -- fine,
-            // the local copy below keeps things working either way.
+            // Server/DB might not be set up (e.g. no PHP running locally,
+            // or db.php couldn't connect) -- that's fine, the localStorage
+            // copy below keeps the leaderboard working either way.
             console.warn('Could not reach save_score.php, using localStorage only:', err);
         });
 
-    // Always keep a local copy so the leaderboard still works if the
-    // fetch above fails.
+    // Always keep a local copy too. This is the fallback save_score.php's
+    // comments call out: if the fetch() above fails, the leaderboard
+    // still works off this instead of hanging or breaking.
     saveScoreLocally(player, mode, moveCount, secondsElapsed);
 
     loadLeaderboard();
@@ -391,7 +396,7 @@ function saveScoreLocally(name, mode, moves, time) {
         return a.time - b.time || a.moves - b.moves;
     });
 
-    scores = scores.slice(0, 5); // keep top 5 only
+    scores = scores.slice(0, 5); // keep top 5, same as Homework 4
 
     localStorage.setItem("puzzleLeaderboard", JSON.stringify(scores));
 }
@@ -434,13 +439,15 @@ function renderLeaderboardRows(scores) {
 }
 
 function loadLeaderboard() {
+    // Try the shared server leaderboard first...
     fetch('api/get_scores.php')
         .then((response) => response.json())
         .then((scores) => {
             renderLeaderboardRows(scores);
         })
         .catch((err) => {
-            // API/DB not reachable -- fall back to local storage
+            // ...and fall back to whatever's saved locally if the API/DB
+            // isn't reachable, same idea as saveScore() above.
             console.warn('Could not reach get_scores.php, falling back to localStorage:', err);
             let scores = JSON.parse(localStorage.getItem("puzzleLeaderboard")) || [];
             renderLeaderboardRows(scores);
