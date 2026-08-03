@@ -193,13 +193,6 @@ body {
     box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.3);
 }
 
-.track-status {
-    font-size: 0.85em;
-    font-weight: 600;
-    color: #6b7280;
-    margin-bottom: 15px;
-}
-
 .sound-toggle {
     display: block;
     margin-bottom: 15px;
