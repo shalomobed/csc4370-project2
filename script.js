@@ -5,6 +5,7 @@ let currentMode = 'tide_mode';
 let gridSize = 4;
 let shuffleMoveCount = 160; // matches the 'easy' default selected in the difficulty dropdown
 let currentDifficulty = 'easy';
+let currentTrack = 'undergrad'; // single-track scope for this submission
 let magicHints = 5;
 
 let moveCount = 0;
@@ -46,12 +47,18 @@ function onSettingsChanged(){
     }
     
 
-    // Changing size/difficulty needs a full rebuild since gridSize and
-    // tileSize both change.
+    // resetTiles() rebuilds the board at the new size and shuffles it, so
+    // changing puzzle size/difficulty never leaves the solved layout showing.
     resetTiles();
     updateMagicHintButton();
+    updateTrackStatus();
 
+}
 
+function updateTrackStatus() {
+    let label = currentTrack.charAt(0).toUpperCase() + currentTrack.slice(1);
+    document.getElementById('track-status').textContent =
+        `Active Track: ${label} | Difficulty: ${currentDifficulty} | Magic Uses: ${magicHints}`;
 }
 
 
@@ -101,20 +108,13 @@ function stopTimer() {
 
 
 function resetTiles(){
+    // Rebuild to solved state first (handles size changes from
+    // onSettingsChanged), then shuffle into a fresh solvable layout.
+    // shuffleTiles() takes care of zeroing moves/time and restarting the timer.
     tilesArray = Array.from({length: gridSize * gridSize - 1 }, (_,i) => i+1).concat([0]);
     emptyIndex = tilesArray.length - 1;
 
-    moveCount = 0;
-    document.getElementById('move-counter').textContent = 'Moves: 0';
-
-    stopTimer();
-    secondsElapsed = 0;
-    document.getElementById('timer-display').textContent = 'Time: 0s';
-
-    document.getElementById('message').style.display = 'none';
-
-    renderTiles();
-
+    shuffleTiles();
 }
 document.getElementById('reset-btn').addEventListener('click', resetTiles);
 
@@ -240,10 +240,12 @@ function useMagicHint() {
 
     magicHints--;
     updateMagicHintButton();
+    updateTrackStatus();
     playSound(document.getElementById('move-sound'));
 }
 document.getElementById('magic-hint').addEventListener('click', useMagicHint);
 updateMagicHintButton();
+updateTrackStatus();
 
 function isAdjacent(a, b) {
     let rowA = Math.floor(a / gridSize);
